@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>plan</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+  <body>
+      <div class="container-fiuid">
+          <div class="row">
+              <div class="col m-3">
+                  <h1>新竹景點規劃</h1>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-7">
+                  <div id="map" style="width:800px;height:700px;position: relative;overflow: hidden;"></div>
+              </div>
+              <div class="col">
+                  <div class="row">
+                      <div class="form-group">
+                           <p>旅館</p>
+                            <select name="" id="hotel"class="form-control"style="width:300px;"multiple="">  
+                                
+                            </select>
+                      </div>
+                  </div>
+                  <div class="row">
+                        <div class="form-group">
+                             <p>景點</p>
+                              <select name="" id="place"class="form-control"style="width:300px;height: 300px;"multiple="">  
+  
+                              </select>
+                        </div>
+                    </div>
+                  <div class="row">
+                        <button id="creat" type="button" class="btn btn-primary" onclick="initMapp()" >規劃路線</button>
+                  </div>
+              </div>
+  
+          </div>
+      </div>
+  </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        $(function(){
+            var directionsService = new google.maps.DirectionsService();
+            var directionsDisplay = new google.maps.DirectionsRenderer();
+
+            var myLatLng = { 
+                lat: 24.8016170,
+                lng: 120.971574
+            };
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: myLatLng,
+                zoom: 15
+            });
+            directionsDisplay.setMap(map);
+
+            document.getElementById("creat").addEventListener('click', function() {
+                calculateAndDisplayRoute(directionsService, directionsDisplay);
+            });
+
+        
+        
+        function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+            var waypts = [];
+            var hotel_Array = document.getElementById('hotel');
+            for (var i = 0; i < hotel_Array.length; i++) {
+                if (hotel_Array.options[i].selected) {
+                    waypts.push({
+                    location: hotel_Array[i].value,
+                    stopover: true
+                    });
+                }
+            }
+            var place_Array = document.getElementById('place');
+            for (var i = 0; i < place_Array.length; i++) {
+                if (place_Array.options[i].selected) {
+                    waypts.push({
+                    location: place_Array[i].value,
+                    stopover: true
+                    });
+                }
+            }
+            directionsService.route({
+                origin: document.getElementById('hotel').value,
+                destination: document.getElementById('place').value,
+                waypoints: waypts,
+                optimizeWaypoints: true,
+                travelMode: 'DRIVING'
+            }, function(response, status) {
+                if (status === 'OK') {
+                directionsDisplay.setDirections(response);
+                }else {
+                window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }        
+        $.ajax({          
+          type: "get",
+          url: "http://opendata.hccg.gov.tw/dataset/39ee314b-7ce7-4265-a6b5-b57f42392da8/resource/6a3a5f61-5383-419d-a94c-df710071a51e/download/20180321131425502.json",
+          dataType: "json",
+          success: function (response) {
+            for(var i of response){
+              var marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(i.緯度),
+                        lng: parseFloat(i.經度)
+                    },
+                    map: map,
+                    icon: "http://icons.iconarchive.com/icons/iconshock/real-vista-real-state/32/monastery-icon.png",
+                    title: i.旅館名稱
+                });
+                var html = "<option>"+i.旅館名稱+"</option>";
+                $("#hotel").append(html);
+            }
+          }
+        });
+        $.ajax({
+          type: "get",
+          url: "http://opendata.hccg.gov.tw/dataset/7ea7e303-df62-4fbe-a84f-99bdd724b577/resource/c15a9c5f-f6cb-4da5-b8a6-5e7bc4c9eb08/download/20180501160733080.json",
+          dataType: "json",
+          success: function (response) {
+            for(var i of response){
+              var marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(i.緯度),
+                        lng: parseFloat(i.經度)
+                    },
+                    map: map,
+                    icon: "http://icons.iconarchive.com/icons/designbolts/rio-2-movie/32/Rio2-Luiz-icon.png",
+                    title: i.古蹟名稱
+                });
+                var html = "<option>"+i.古蹟名稱+"</option>";
+                $("#place").append(html);
+            }
+          }
+        });
+      
+        })        
+       
+        
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8_leVd8LRKxvNf0wUTOpr8J8PP6P5GTI&callback=initMap"
+        async defer></script>
+ 
+</html>
